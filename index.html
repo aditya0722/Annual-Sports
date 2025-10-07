@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sports Day Live — Mount Zion Kidzee</title>
+  <style>
+    :root {
+      --bg1: #e6f0ff;
+      --bg2: #f9f5ff;
+      --card: rgba(255, 255, 255, 0.9);
+      --muted: #555;
+      --accent: #0e1322;
+
+      --ongoing: #18b26a;
+      --upcoming: #1976d2;
+      --finished: #7b7b7b;
+
+      --marquee-speed: 80s;
+    }
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--accent);
+    }
+    .wrap {
+      padding: clamp(16px, 4vw, 48px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .title h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 42px);
+    }
+    .title p {
+      margin: 4px 0 0;
+      font-size: clamp(14px, 2vw, 18px);
+      color: var(--muted);
+    }
+    .meta {
+      text-align: right;
+    }
+    .clock {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 24px;
+    }
+    @media (max-width: 800px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .live-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .live-tag {
+      background: rgba(24,178,106,0.15);
+      color: var(--ongoing);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .live-title {
+      font-size: clamp(28px, 5vw, 48px);
+      margin: 0;
+    }
+    .live-sub {
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .event-meta {
+      margin-top: 20px;
+      color: var(--muted);
+    }
+
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+    }
+    .card h3 {
+      margin: 0 0 12px;
+    }
+
+    .status-chip {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: bold;
+      margin: 6px 6px 0 0;
+      cursor: pointer;
+    }
+    .status-chip[data-filter="ongoing"] {
+      background: rgba(24,178,106,0.12);
+      color: var(--ongoing);
+    }
+    .status-chip[data-filter="upcoming"] {
+      background: rgba(25,118,210,0.12);
+      color: var(--upcoming);
+    }
+    .status-chip[data-filter="finished"] {
+      background: rgba(123,123,123,0.12);
+      color: var(--finished);
+    }
+
+    .ticker-wrap {
+      overflow: hidden;
+      border-radius: 14px;
+      background: var(--card);
+      padding: 12px 0;
+      margin-top: 8px;
+    }
+    .ticker {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee var(--marquee-speed) linear infinite;
+    }
+    .ticker a {
+      display: inline-block;
+      margin-right: 40px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.85);
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .ticker a:hover {
+      background: rgba(255,255,255,1);
+    }
+    .ticker-wrap:hover .ticker {
+      animation-play-state: paused;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Winner highlight only here */
+    .winner-yellow { border-left: 6px solid #f9e046; padding-left: 12px; }
+    .winner-red    { border-left: 6px solid #ef6b63; padding-left: 12px; }
+    .winner-blue   { border-left: 6px solid #4aa4ff; padding-left: 12px; }
+    .winner-green  { border-left: 6px solid #6ad07b; padding-left: 12px; }
+
+    .winner-pill {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 999px;
+      background: #eee;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Mount Zion Kidzee — Sports Day Live</h1>
+        <p>SingTam, Sikkim · Updated in real-time</p>
+      </div>
+      <div class="meta">
+        <div id="date"></div>
+        <div id="clock" class="clock"></div>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="live-card" id="liveCard">
+        <span class="live-tag" id="liveTag">ONGOING</span>
+        <h2 class="live-title" id="liveName">No current event</h2>
+        <div class="live-sub" id="liveCategory">—</div>
+        <div class="event-meta" id="liveTime">Start: —</div>
+      </div>
+
+      <div class="right-column">
+        <div class="card" id="finishedCard">
+          <h3>🏆 Most Recent Finished</h3>
+          <div id="finishedContent"><div style="color: var(--muted)">None yet</div></div>
+        </div>
+        <div class="card">
+          <h3>Show Events</h3>
+          <div>
+            <span class="status-chip" data-filter="ongoing">Ongoing</span>
+            <span class="status-chip" data-filter="upcoming">Upcoming</span>
+            <span class="status-chip" data-filter="finished">Finished</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ticker-wrap">
+      <div class="ticker" id="marquee">Loading events…</div>
+    </div>
+  </div>
+
+  <script>
+    const DATA_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLhvEjuYhZx4WG0oMHr82tGg8iqCMGbZvrWeYcai4Cyts8-pc3gpI7IIxWgpXJNy7X60aPsv5S8ZqQjkHOE-4hEwNJkySRrvq9DUM4ntMMmdUJljc4qaO_BH-7LgE5j42-hLpdEpaaGy-k0KSDmYPq1FYuDjflqjm_UboCN1fv4LUmXKmE8f23OSCaHoST-L9likZAuemY_Gd59kiOUvPON4LtnBWgpDoGFHsUvDZgRyKFmtdzEexdN9_kNqWZviIaSRfG6VhtD6r1unlW7quO_7G5MKHnt9rtuRknif&lib=M45nkEyRl6ROsxw858Mc34IRSBh1zMN3z";
+    const POLL_MS = 7000;
+    let latestData = [];
+    let currentFilter = "upcoming";
+
+    const safeText = s => (s || "").toString().trim();
+    const formatTime = iso => {
+      const d = new Date(iso);
+      if (isNaN(d)) return iso;
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+    function refreshClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString();
+      document.getElementById('date').textContent = now.toLocaleDateString();
+    }
+    setInterval(refreshClock, 1000); refreshClock();
+
+    async function fetchAndUpdate() {
+      try {
+        const resp = await fetch(DATA_URL, { cache: "no-store" });
+        const arr = await resp.json();
+        if (!Array.isArray(arr)) throw new Error("Bad data");
+        latestData = arr;
+        updateUI();
+      } catch (e) {
+        console.error("Fetch error:", e);
+      }
+    }
+    setInterval(fetchAndUpdate, POLL_MS);
+    fetchAndUpdate();
+
+    function updateUI() {
+      const ongoing = latestData.filter(e => safeText(e.Status).toLowerCase() === "ongoing");
+      const upcoming = latestData.filter(e => safeText(e.Status).toLowerCase() === "upcoming");
+      const finished = latestData.filter(e => safeText(e.Status).toLowerCase().startsWith("finish"));
+
+      const live = document.getElementById("liveCard");
+      if (ongoing.length) {
+        const e = ongoing[0];
+        document.getElementById("liveName").textContent = safeText(e["Event Name"]);
+        document.getElementById("liveCategory").textContent = safeText(e.Category);
+        document.getElementById("liveTime").textContent = "Start: " + formatTime(e["Event Time"]);
+      } else {
+        document.getElementById("liveName").textContent = "No ongoing event";
+        document.getElementById("liveCategory").textContent = "";
+        document.getElementById("liveTime").textContent = "";
+      }
+
+      const finishedBox = document.getElementById("finishedContent");
+      if (finished.length) {
+        const last = finished[finished.length - 1];
+        const w = safeText(last.Winner).toLowerCase();
+        const wrapper = document.createElement("div");
+        wrapper.className = "winner-" + (w.includes("yellow") ? "yellow" :
+                                         w.includes("red")    ? "red"    :
+                                         w.includes("blue")   ? "blue"   :
+                                         w.includes("green")  ? "green"  : "");
+        wrapper.innerHTML = `
+          <div><strong>${safeText(last["Event Name"])}</strong></div>
+          <div style="color: var(--muted)">${safeText(last.Category)} • ${formatTime(last["Event Time"])}</div>
+          ${ last.Winner ? `<div class="winner-pill">🏅 ${safeText(last.Winner)}</div>` : "" }
+        `;
+        finishedBox.innerHTML = "";
+        finishedBox.appendChild(wrapper);
+      } else {
+        finishedBox.innerHTML = `<div style="color: var(--muted)">None yet</div>`;
+      }
+
+      let displayList = currentFilter === "ongoing" ? ongoing :
+                        currentFilter === "finished" ? finished :
+                        upcoming;
+      buildMarquee(displayList);
+    }
+
+    function buildMarquee(arr) {
+      const marq = document.getElementById("marquee");
+      if (!arr.length) {
+        marq.innerHTML = `<span style="color: var(--muted); padding-left: 10%;">No events</span>`;
+        return;
+      }
+      const links = arr.map(ev => {
+        const t = formatTime(ev["Event Time"]);
+        const nm = safeText(ev["Event Name"]);
+        const cat = safeText(ev.Category);
+        return `<a href="#" data-name="${encodeURIComponent(nm)}">${t} · ${nm} (${cat})</a>`;
+      });
+      marq.innerHTML = links.concat(links).join("");
+    }
+
+    document.addEventListener("click", e => {
+      const chip = e.target.closest(".status-chip");
+      if (chip) {
+        currentFilter = chip.dataset.filter;
+        updateUI();
+        return;
+      }
+      const link = e.target.closest("#marquee a");
+      if (link) {
+        const nm = decodeURIComponent(link.dataset.name);
+        alert("You clicked event: " + nm);
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
