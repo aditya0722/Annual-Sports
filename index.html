@@ -188,13 +188,24 @@
       background: #eee;
       color: #222;
     }
+    .winner-pill {
+    display: inline-block;
+    margin: 6px 4px 0 0;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 999px;
+    color: #222;
+    }
+
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="title">
-        <h1>Mount Zion Kidzee — Sports Day Live</h1>
+       
+        <h1> <img src="https://mountzionkidzeeschoolsingtam.edu.in/wp-content/uploads/2023/12/logosmall.png" alt="logo" height="50" width="50"/> Mount Zion Kidzee — Sports Day Live <img src="https://vectorseek.com/wp-content/uploads/2023/08/Kidzee-School-Round-Logo-Vector.svg-.png" alt="logo" height="50" width="50"/></h1>
         <p>SingTam, Sikkim · Updated in real-time</p>
       </div>
       <div class="meta">
@@ -283,24 +294,34 @@
       }
 
       const finishedBox = document.getElementById("finishedContent");
-      if (finished.length) {
-        const last = finished[finished.length - 1];
-        const w = safeText(last.Winner).toLowerCase();
-        const wrapper = document.createElement("div");
-        wrapper.className = "winner-" + (w.includes("yellow") ? "yellow" :
-                                         w.includes("red")    ? "red"    :
-                                         w.includes("blue")   ? "blue"   :
-                                         w.includes("green")  ? "green"  : "");
-        wrapper.innerHTML = `
-          <div><strong>${safeText(last["Event Name"])}</strong></div>
-          <div style="color: var(--muted)">${safeText(last.Category)} • ${formatTime(last["Event Time"])}</div>
-          ${ last.Winner ? `<div class="winner-pill">🏅 ${safeText(last.Winner)}</div>` : "" }
-        `;
-        finishedBox.innerHTML = "";
-        finishedBox.appendChild(wrapper);
-      } else {
-        finishedBox.innerHTML = `<div style="color: var(--muted)">None yet</div>`;
-      }
+    if (finished.length) {
+      const last = finished[finished.length - 1];
+
+      const first = safeText(last["1st"]);
+      const second = safeText(last["2nd"]);
+      const third = safeText(last["3rd"]);
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "winner-yellow"; // or any class — keep highlight style
+
+      wrapper.innerHTML = `
+        <div><strong>${safeText(last["Event Name"])}</strong></div>
+        <div style="color: var(--muted)">${safeText(last.Category)} • ${formatTime(last["Event Time"])}</div>
+
+        <div style="margin-top:10px;">
+          ${ first ? `<div class="winner-pill" style="background:#ffd54f;">🥇 1st: ${first}</div>` : "" }
+          ${ second ? `<div class="winner-pill" style="background:#e0e0e0;">🥈 2nd: ${second}</div>` : "" }
+          ${ third ? `<div class="winner-pill" style="background:#ffab91;">🥉 3rd: ${third}</div>` : "" }
+        </div>
+      `;
+
+      finishedBox.innerHTML = "";
+      finishedBox.appendChild(wrapper);
+
+    } else {
+      finishedBox.innerHTML = `<div style="color: var(--muted)">None yet</div>`;
+    }
+
 
       let displayList = currentFilter === "ongoing" ? ongoing :
                         currentFilter === "finished" ? finished :
